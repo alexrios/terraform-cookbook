@@ -86,6 +86,26 @@ resource "aws_launch_configuration" "example" {
   }
 }
 
+resource "aws_security_group" "instance" {
+  name = "terraform-example-instance"
+
+  # Inbound HTTP from anywhere
+  ingress {
+    from_port = "${var.server_port}"
+    to_port = "${var.server_port}"
+    protocol = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+
+  # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
+  # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
+  # when you try to do a terraform destroy.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 output "elb_dns_name" {
   value = "${aws_elb.example.dns_name}"
 }
